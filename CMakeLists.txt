@@ -3,9 +3,9 @@ project(DynamicBitset)
 
 set(CMAKE_CXX_STANDARD 17)
 
-include_directories("D:/Programmes/_CPP")
+include_directories(${CATCH_DIR})
 
-add_executable(unit_tests
-        DynamicBitset.hpp
-        test-DynamicBitset.cpp
-        test-main.cpp)
+file(GLOB_RECURSE TEST_FILES test/*)
+
+add_executable(unit_tests DynamicBitset.hpp test-DynamicBitset.cpp test-main.cpp ${TEST_FILES})
+
