@@ -5,7 +5,10 @@
 #ifdef HAS_SSE
     #include <immintrin.h>
 #endif
+
+#include <cstddef>
 #include <initializer_list>
+#include <memory>
 
 template<typename Allocator = std::allocator<std::byte>>
 class DynamicBitset
@@ -27,6 +30,10 @@ public:
         pointer operator&();
 
         operator bool() const noexcept;
+
+        bool operator==(reference const& other) const { return bool(*this) == bool(other); }
+
+        bool operator<(reference const& other) const { return !bool(*this) && bool(other); }
 
     private:
         std::byte* const byte;
@@ -53,57 +60,16 @@ public:
 
         internal_pointer& operator--() { if(offset == 0) {--byte; offset = 7;} else --offset; return *this; }
         internal_pointer operator--(int) { auto temp = *this; --*this; return temp; }
-        
-        internal_pointer& operator+=(difference_type d)
-        {
-            if(d < 0)
-                return *this -= -d;
-            byte += d/8;
-            if(offset + d%8 > 7)
-            {
-                ++byte;
-                offset += d%8 - 8;
-            }
-			else
-                offset += d%8;
-            return *this;
-        }
-        internal_pointer& operator-=(difference_type d)
-        {
-            if(d < 0)
-                return *this += -d;
-            byte -= d/8;
-            if(static_cast<ptrdiff_t>(offset) - d%8 < 0)
-            {
-                --byte;
-                offset -= d%8 - 8;
-            }
-			else
-                offset -= d%8;
-            return *this;
-        }
+
+        internal_pointer& operator+=(difference_type d);
+        internal_pointer& operator-=(difference_type d);
+
+        internal_pointer operator+(difference_type d);
+        internal_pointer operator-(difference_type d);
 
         reference operator*() { return reference(byte, offset); }
+
         const_reference operator*() const { return static_cast<bool>(reference(byte, offset)); }
-        
-        internal_pointer operator+(difference_type d)
-        {
-            if(d < 0)
-                return *this - -d;
-            auto temp = byte + d/8;
-            if(offset + d%8 > 7)
-                return internal_pointer(temp + 1, offset + d%8 - 8);
-            return internal_pointer(temp, offset + d%8);
-        }
-        internal_pointer operator-(difference_type d)
-        {
-            if(d < 0)
-                return *this + -d;
-            auto temp = byte - d/8;
-            if(static_cast<ptrdiff_t>(offset) - d%8 < 0)
-                return internal_pointer(temp - 1, offset - d%8 + 8);
-            return internal_pointer(temp, offset - d%8);
-        }
 
         reference operator[](difference_type d) { return *(*this + d); }
         const_reference operator[](difference_type d) const { return *(*this + d); }
@@ -125,8 +91,8 @@ public:
     using const_pointer = pointer; // TODO pas sur
     using iterator = pointer;
     using const_iterator = const_pointer;
-    using reverse_iterator = std::reverse_iterator<iterator>();
-    using const_reverse_iterator = std::reverse_iterator<const_iterator>();
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
     // Constructors
     DynamicBitset() noexcept(noexcept(Allocator()));
@@ -189,9 +155,9 @@ public:
 
     iterator insert(const_iterator pos, bool value);
     iterator insert(const_iterator pos, bool&& value);
-    iterator insert(const_iterator pos, size_type count, const T& value);
+    iterator insert(const_iterator pos, size_type count, bool value);
     iterator insert(const_iterator pos, const_iterator first, const_iterator last);
-    iterator insert(const_iterator pos, std::initializer_list<T> ilist);
+    iterator insert(const_iterator pos, std::initializer_list<bool> ilist);
 
     template< class... Args > 
     iterator emplace(const_iterator pos, Args&&... args);
@@ -253,10 +219,10 @@ private:
 };
 
 template<typename Allocator>
-DynamicBitset::size_type DynamicBitset<Allocator>::popcount(DynamicBitset::const_iterator pos, DynamicBitset::size_type n) const {
-    DynamicBitset::size_type sum = 0;
+typename DynamicBitset<Allocator>::size_type DynamicBitset<Allocator>::popcount(const_iterator pos, size_type n) const {
+    size_type  sum = 0;
     const auto end = pos + n;
-#ifdef HAS_SSE4_1
+#ifdef HAS_SSE
     while(pos != end){
         if(end - pos >= 64){
             sum += _mm_popcnt_u64(reinterpret_cast<__int64>(pos));
@@ -328,6 +294,91 @@ template<typename Allocator>
 DynamicBitset<Allocator>::pointer::pointer(std::byte* ptr, uint8_t off) noexcept :
 byte{ptr}, offset{off}
 {}
+
+template<typename Allocator>
+typename DynamicBitset<Allocator>::pointer::internal_pointer& DynamicBitset<Allocator>::pointer::operator
++=(difference_type d) {
+    if (d < 0)
+        return *this -= -d;
+    byte += d / 8;
+    if (offset + d % 8 > 7) {
+        ++byte;
+        offset += d % 8 - 8;
+    } else
+        offset += d % 8;
+    return *this;
+}
+
+template<typename Allocator>
+typename DynamicBitset<Allocator>::pointer::internal_pointer& DynamicBitset<Allocator>::pointer::operator
+-=(difference_type d) {
+    if (d < 0)
+        return *this += -d;
+    byte -= d / 8;
+    if (static_cast<ptrdiff_t>(offset) - d % 8 < 0) {
+        --byte;
+        offset -= d % 8 - 8;
+    } else
+        offset -= d % 8;
+    return *this;
+}
+
+template<typename Allocator>
+typename DynamicBitset<Allocator>::pointer::internal_pointer DynamicBitset<Allocator>::pointer::operator+(
+        difference_type d) {
+    if (d < 0)
+        return *this - -d;
+    auto temp = byte + d / 8;
+    if (offset + d % 8 > 7)
+        return internal_pointer(temp + 1, offset + d % 8 - 8);
+    return internal_pointer(temp, offset + d % 8);
+}
+
+template<typename Allocator>
+typename DynamicBitset<Allocator>::pointer::internal_pointer DynamicBitset<Allocator>::pointer::operator-(
+        difference_type d) {
+    if (d < 0)
+        return *this + -d;
+    auto temp = byte - d / 8;
+    if (static_cast<ptrdiff_t>(offset) - d % 8 < 0)
+        return internal_pointer(temp - 1, offset - d % 8 + 8);
+    return internal_pointer(temp, offset - d % 8);
+}
+
+// Non member operators
+
+template<typename Allocator>
+bool operator==(DynamicBitset<Allocator> const& lhs, DynamicBitset<Allocator> const& rhs) {
+    return (lhs.size() == rhs.size() && std::equal(lhs.begin(), lhs.end(), rhs.begin()));
+}
+
+template<typename Allocator>
+bool operator!=(DynamicBitset<Allocator> const& lhs, DynamicBitset<Allocator> const& rhs) {
+    return !(lhs == rhs);
+}
+
+template<typename Allocator>
+bool operator<(DynamicBitset<Allocator> const& lhs, DynamicBitset<Allocator> const& rhs) {
+    return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}
+
+template<typename Allocator>
+bool operator<=(DynamicBitset<Allocator> const& lhs, DynamicBitset<Allocator> const& rhs) {
+    return !(lhs < rhs);
+}
+
+template<typename Allocator>
+bool operator>(DynamicBitset<Allocator> const& lhs, DynamicBitset<Allocator> const& rhs) {
+    return rhs > lhs;
+}
+
+template<typename Allocator>
+bool operator>=(DynamicBitset<Allocator> const& lhs, DynamicBitset<Allocator> const& rhs) {
+    return !(lhs < rhs);
+}
+
+template<typename Allocator>
+void swap(DynamicBitset<Allocator>& lhs, DynamicBitset<Allocator>& rhs) noexcept;
 
 
 #endif // DYNAMICBITSET_HPP
