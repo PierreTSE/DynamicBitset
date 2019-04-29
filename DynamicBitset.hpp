@@ -1,9 +1,15 @@
 #ifndef DYNAMICBITSET_HPP
 #define DYNAMICBITSET_HPP
 
-#include "test_sse_macro.hpp"
-#ifdef HAS_SSE
-    #include <immintrin.h>
+#define DB_USE_INTRINSICS
+
+#if defined(_WIN32) || defined(__WIN32__) || defined(__MINGW32__) || defined(__TOS_WIN__) || defined(__WINDOWS__)
+    #define DB_OS_WINDOWS
+    #include <intrin.h>
+#endif
+
+#if defined(__linux__)
+    #define DB_OS_LINUX
 #endif
 
 #include <cstddef>
@@ -222,20 +228,42 @@ template<typename Allocator>
 typename DynamicBitset<Allocator>::size_type DynamicBitset<Allocator>::popcount(const_iterator pos, size_type n) const {
     size_type  sum = 0;
     const auto end = pos + n;
-#ifdef HAS_SSE
+#ifdef DB_USE_INTRINSICS
+    #ifdef DB_OS_WINDOWS
     while(pos != end){
         if(end - pos >= 64){
-            sum += _mm_popcnt_u64(reinterpret_cast<__int64>(pos));
+            sum += __popcnt64(reinterpret_cast<__int64>(pos));
             pos += 64;
         } else if(end - pos >= 32){
-            sum += _mm_popcnt_u64(reinterpret_cast<__int32>(pos));
+            sum += __popcnt(reinterpret_cast<__int32>(pos));
             pos += 32;
+        } else if(end - pos >= 16){
+            sum += __popcnt16(reinterpret_cast<__int32>(pos));
+            pos += 16;
         } else{
             while(pos != end){
                 sum += *pos++;
             }
         }
     }
+    #elif defined(DB_OS_LINUX)
+    while(pos != end){
+        if(end - pos >= sizeof(unsigned long long) * CHAR_BIT){
+            sum += __builtin_popcountll(reinterpret_cast<__int64>(pos));
+            pos += 64;
+        } else if(end - pos >= sizeof(unsigned long) * CHAR_BIT){
+            sum += __builtin_popcountl(reinterpret_cast<__int32>(pos));
+            pos += 32;
+        } else if(end - pos >= sizeof(unsigned int) * CHAR_BIT){
+            sum += __builtin_popcount(reinterpret_cast<__int32>(pos));
+            pos += 16;
+        } else{
+            while(pos != end){
+                sum += *pos++;
+            }
+        }
+    }
+    #endif
 #else
     while(pos != end){
         sum += *pos++;
