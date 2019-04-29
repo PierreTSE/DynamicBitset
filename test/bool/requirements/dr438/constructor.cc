@@ -19,7 +19,7 @@
 
 // { dg-do compile }
 
-#include "../../../DynamicBitset.hpp"
+#include "../../../../DynamicBitset.hpp"
 
 void f()
 {

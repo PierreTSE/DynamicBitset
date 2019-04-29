@@ -18,7 +18,7 @@
 // { dg-do compile { target c++11 } }
 
 #include "../../../DynamicBitset.hpp"
-#include <testsuite_allocator.h>
+#include "testsuite_allocator.h"
 
 using T = bool;
 

@@ -21,7 +21,7 @@
 
 #include "../../../DynamicBitset.hpp"
 #include <catch.hpp>
-#include <testsuite_allocator.h>
+#include "testsuite_allocator.h"
 
 #include <ext/aligned_buffer.h>
 

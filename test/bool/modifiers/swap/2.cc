@@ -19,7 +19,7 @@
 
 // 23.2.5 vector<bool>::swap
 
-#include "../../../DynamicBitset.hpp"
+#include "../../../../DynamicBitset.hpp"
 #include <catch.hpp>
 #include <testsuite_allocator.h>
 

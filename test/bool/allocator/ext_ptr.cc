@@ -20,7 +20,7 @@
 #include "../../../DynamicBitset.hpp"
 #include <memory>
 #include <catch.hpp>
-#include <testsuite_allocator.h>
+#include "testsuite_allocator.h"
 
 using T = bool;
 

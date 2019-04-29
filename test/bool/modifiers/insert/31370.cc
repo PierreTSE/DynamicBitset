@@ -20,7 +20,7 @@
 // { dg-do run { xfail *-*-darwin8.[0-4].* } }
 // { dg-skip-if "" { powerpc64-*-freebsd* } }
 
-#include "../../../DynamicBitset.hpp"
+#include "../../../../DynamicBitset.hpp"
 #include <stdexcept>
 #include <catch.hpp>
 

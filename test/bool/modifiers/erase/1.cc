@@ -19,7 +19,7 @@
 
 // 23.2.5 vector<bool> modifiers
 
-#include "../../../DynamicBitset.hpp"
+#include "../../../../DynamicBitset.hpp"
 #include <catch.hpp>
 
 const bool  A[] = {0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1};
