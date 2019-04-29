@@ -17,6 +17,7 @@
 
 // 23.3.8  class vector<bool>
 
+#include <catch.hpp>
 #include "../../DynamicBitset.hpp"
 
 // libstdc++/82558

@@ -17,17 +17,18 @@
 
 // { dg-do compile }
 
+#include <catch.hpp>
 #include "../../DynamicBitset.hpp"
 
 // libstdc++/23632
 TEST_CASE("01")
 {
-  DynamicBitset v(100);
-  const DynamicBitset::iterator fu = v.begin();
+  DynamicBitset<> v(100);
+  const DynamicBitset<>::iterator fu = v.begin();
   if (!fu[0])
     fu[0] = true;
 
-  const DynamicBitset::const_iterator cfu = v.begin();
+  const DynamicBitset<>::const_iterator cfu = v.begin();
   if (cfu[0])
     ;
 }

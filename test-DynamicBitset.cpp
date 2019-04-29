@@ -24,7 +24,7 @@ const bool A47[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 
 TEST_CASE( "size and resize", "[DynamicBitset]" ) {
 
-    DynamicBitset v( 5 );
+    DynamicBitset<> v( 5 );
     REQUIRE( v.size() == 5 );
     REQUIRE( v.capacity() >= 5 );
 
@@ -51,10 +51,10 @@ TEST_CASE( "size and resize", "[DynamicBitset]" ) {
 }
 
 TEST_CASE("popcnt"){
-    DynamicBitset db6 = A6;
-    DynamicBitset db47 = A47;
-    DynamicBitset db126 = A126;
-    REQUIRE(db6.popcnt() == 6);
-    REQUIRE(db47.popcnt() == 47);
-    REQUIRE(db126.popcnt() == 126);
+    DynamicBitset<> db6(A6);
+    DynamicBitset<> db47 = A47;
+    DynamicBitset<> db126 = A126;
+    REQUIRE(db6.popcount() == 6);
+    REQUIRE(db47.popcount() == 47);
+    REQUIRE(db126.popcount() == 126);
 }

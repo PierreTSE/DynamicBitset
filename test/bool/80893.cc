@@ -19,8 +19,9 @@
 
 // libstdc++/80893
 
+#include <catch.hpp>
 #include "../../DynamicBitset.hpp"
-#include <testsuite_allocator.h>
+#include "allocator/testsuite_allocator.h"
 
 struct DereferencedInvalidPointer { };
 

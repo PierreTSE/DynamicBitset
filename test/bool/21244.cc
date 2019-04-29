@@ -31,5 +31,5 @@ template<class T> Foo operator/(const Foo& arg1, T arg2)
 // libstdc++/21244
 void foo()
 {
-  DynamicBitset bar(1);
+  DynamicBitset<> bar(1);
 }
