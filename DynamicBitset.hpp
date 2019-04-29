@@ -1,8 +1,6 @@
 #ifndef DYNAMICBITSET_HPP
 #define DYNAMICBITSET_HPP
 
-#define DB_USE_INTRINSICS
-
 #if defined(_WIN32) || defined(__WIN32__) || defined(__MINGW32__) || defined(__TOS_WIN__) || defined(__WINDOWS__)
     #define DB_OS_WINDOWS
     #include <intrin.h>
@@ -17,16 +15,15 @@
 #include <memory>
 
 template<typename Allocator = std::allocator<std::byte>>
-class DynamicBitset
-{
+class DynamicBitset {
 public:
     using value_type = bool;
     using allocator_type = Allocator;
     using size_type = std::size_t;
     using difference_type = std::ptrdiff_t;
     struct pointer;
-    struct reference
-    {
+
+    struct reference {
         reference(std::byte* ptr, uint8_t off) noexcept;
         reference& operator=(bool) noexcept;
         reference& operator=(reference const&) noexcept;
@@ -45,9 +42,10 @@ public:
         std::byte* const byte;
         uint8_t const offset;
     };
+
     using const_reference = bool;
-    struct pointer
-    {
+
+    struct pointer {
         using iterator_category = std::random_access_iterator_tag;
         using value_type = bool;
         using reference = reference;
@@ -61,11 +59,33 @@ public:
 
         pointer(std::byte* ptr, uint8_t off) noexcept;
 
-        internal_pointer& operator++() { if(offset == 7) {++byte; offset = 0;} else ++offset; return *this; }
-        internal_pointer operator++(int) { auto temp = *this; ++*this; return temp; }
+        internal_pointer& operator++() {
+            if (offset == 7) {
+                ++byte;
+                offset = 0;
+            } else ++offset;
+            return *this;
+        }
 
-        internal_pointer& operator--() { if(offset == 0) {--byte; offset = 7;} else --offset; return *this; }
-        internal_pointer operator--(int) { auto temp = *this; --*this; return temp; }
+        internal_pointer operator++(int) {
+            auto temp = *this;
+            ++*this;
+            return temp;
+        }
+
+        internal_pointer& operator--() {
+            if (offset == 0) {
+                --byte;
+                offset = 7;
+            } else --offset;
+            return *this;
+        }
+
+        internal_pointer operator--(int) {
+            auto temp = *this;
+            --*this;
+            return temp;
+        }
 
         internal_pointer& operator+=(difference_type d);
         internal_pointer& operator-=(difference_type d);
@@ -78,14 +98,23 @@ public:
         const_reference operator*() const { return static_cast<bool>(reference(byte, offset)); }
 
         reference operator[](difference_type d) { return *(*this + d); }
+
         const_reference operator[](difference_type d) const { return *(*this + d); }
-        
+
         bool operator==(internal_pointer const& other) const { return byte == other.byte && offset == other.offset; }
+
         bool operator!=(internal_pointer const& other) const { return !(*this == other); }
 
-        bool operator<(internal_pointer const& other) const { if(byte < other.byte) return true; if(byte > other.byte) return false; return offset < other.offset; }
+        bool operator<(internal_pointer const& other) const {
+            if (byte < other.byte) return true;
+            if (byte > other.byte) return false;
+            return offset < other.offset;
+        }
+
         bool operator>(internal_pointer const& other) const { return other < *this; }
+
         bool operator<=(internal_pointer const& other) const { return !(*this > other); }
+
         bool operator>=(internal_pointer const& other) const { return !(*this < other); }
 
         difference_type operator-(internal_pointer const& other) { return (byte - other.byte) * 8 + (offset - other.offset); }
@@ -94,6 +123,7 @@ public:
         std::byte* byte;
         uint8_t offset;
     };
+
     using const_pointer = pointer; // TODO pas sur
     using iterator = pointer;
     using const_iterator = const_pointer;
@@ -132,7 +162,7 @@ public:
     iterator begin() noexcept;
     const_iterator begin() const noexcept;
     const_iterator cbegin() const noexcept;
-        
+
     iterator end() noexcept;
     const_iterator end() const noexcept;
     const_iterator cend() const noexcept;
@@ -165,8 +195,8 @@ public:
     iterator insert(const_iterator pos, const_iterator first, const_iterator last);
     iterator insert(const_iterator pos, std::initializer_list<bool> ilist);
 
-    template< class... Args > 
-    iterator emplace(const_iterator pos, Args&&... args);
+    template<class... Args>
+    iterator emplace(const_iterator pos, Args&& ... args);
 
     iterator erase(const_iterator pos);
     iterator erase(const_iterator first, const_iterator last);
@@ -174,8 +204,8 @@ public:
     void push_back(bool&& value);
     void pop_back();
 
-    template< class... Args >
-    reference emplace_back(Args&&... args);
+    template<class... Args>
+    reference emplace_back(Args&& ... args);
 
     void resize(size_type count);
     void resize(size_type count, const value_type& value);
@@ -216,9 +246,8 @@ public:
     size_type popcount(const_iterator first, const_iterator last) const;
 
 private:
-    struct data
-    {
-        pointer start = nullptr;
+    struct data {
+        pointer start  = nullptr;
         pointer finish = nullptr;
         std::byte* end = nullptr;
     };
@@ -228,34 +257,34 @@ template<typename Allocator>
 typename DynamicBitset<Allocator>::size_type DynamicBitset<Allocator>::popcount(const_iterator pos, size_type n) const {
     size_type  sum = 0;
     const auto end = pos + n;
-#ifdef DB_USE_INTRINSICS
-    #ifdef DB_OS_WINDOWS
-    while(pos != end){
-        if(end - pos >= 64){
+
+#ifdef DB_OS_WINDOWS
+    while (pos != end) {
+        if (end - pos >= 64) {
             sum += __popcnt64(reinterpret_cast<__int64>(pos));
             pos += 64;
-        } else if(end - pos >= 32){
+        } else if (end - pos >= 32) {
             sum += __popcnt(reinterpret_cast<__int32>(pos));
             pos += 32;
-        } else if(end - pos >= 16){
-            sum += __popcnt16(reinterpret_cast<__int32>(pos));
+        } else if (end - pos >= 16) {
+            sum += __popcnt16(reinterpret_cast<__int16>(pos));
             pos += 16;
-        } else{
-            while(pos != end){
+        } else {
+            while (pos != end) {
                 sum += *pos++;
             }
         }
     }
-    #elif defined(DB_OS_LINUX)
+#elif defined(DB_OS_LINUX)
     while(pos != end){
         if(end - pos >= sizeof(unsigned long long) * CHAR_BIT){
-            sum += __builtin_popcountll(reinterpret_cast<__int64>(pos));
+            sum += __builtin_popcountll(reinterpret_cast<unsigned long long>(pos));
             pos += 64;
         } else if(end - pos >= sizeof(unsigned long) * CHAR_BIT){
-            sum += __builtin_popcountl(reinterpret_cast<__int32>(pos));
+            sum += __builtin_popcountl(reinterpret_cast<unsigned long>(pos));
             pos += 32;
         } else if(end - pos >= sizeof(unsigned int) * CHAR_BIT){
-            sum += __builtin_popcount(reinterpret_cast<__int32>(pos));
+            sum += __builtin_popcount(reinterpret_cast<unsigned int>(pos));
             pos += 16;
         } else{
             while(pos != end){
@@ -263,7 +292,6 @@ typename DynamicBitset<Allocator>::size_type DynamicBitset<Allocator>::popcount(
             }
         }
     }
-    #endif
 #else
     while(pos != end){
         sum += *pos++;
@@ -274,54 +302,47 @@ typename DynamicBitset<Allocator>::size_type DynamicBitset<Allocator>::popcount(
 
 
 template<typename Allocator>
-typename DynamicBitset<Allocator>::pointer operator+(typename DynamicBitset<Allocator>::pointer::difference_type lhs, typename DynamicBitset<Allocator>::pointer rhs)
-{
+typename DynamicBitset<Allocator>::pointer
+operator+(typename DynamicBitset<Allocator>::pointer::difference_type lhs, typename DynamicBitset<Allocator>::pointer rhs) {
     return rhs + lhs;
 }
 
 template<typename Allocator>
 DynamicBitset<Allocator>::reference::reference(std::byte* ptr, uint8_t off) noexcept :
-byte{ptr}, offset{off}
-{}
+        byte{ptr}, offset{off} {}
 
 template<typename Allocator>
-typename DynamicBitset<Allocator>::reference& DynamicBitset<Allocator>::reference::operator=(bool b) noexcept
-{
-    if(b)
-        *byte |= (std::byte(1) << 7-offset);
-	else
-        *byte &= ~(std::byte(1) << 7-offset);
+typename DynamicBitset<Allocator>::reference& DynamicBitset<Allocator>::reference::operator=(bool b) noexcept {
+    if (b)
+        *byte |= (std::byte(1) << 7 - offset);
+    else
+        *byte &= ~(std::byte(1) << 7 - offset);
     return *this;
 }
 
 template<typename Allocator>
-typename DynamicBitset<Allocator>::reference& DynamicBitset<Allocator>::reference::operator=(reference const& other) noexcept
-{
+typename DynamicBitset<Allocator>::reference& DynamicBitset<Allocator>::reference::operator=(reference const& other) noexcept {
     return *this = static_cast<bool>(other);
 }
 
 template<typename Allocator>
-void DynamicBitset<Allocator>::reference::flip() noexcept
-{
-    *byte ^= (std::byte(1) << 7-offset);
+void DynamicBitset<Allocator>::reference::flip() noexcept {
+    *byte ^= (std::byte(1) << 7 - offset);
 }
 
 template<typename Allocator>
-typename DynamicBitset<Allocator>::pointer DynamicBitset<Allocator>::reference::operator&()
-{
+typename DynamicBitset<Allocator>::pointer DynamicBitset<Allocator>::reference::operator&() {
     return pointer(byte, offset);
 }
 
 template<typename Allocator>
-DynamicBitset<Allocator>::reference::operator bool() const noexcept 
-{
-    return std::to_integer<bool>(*byte & (std::byte(1) << 7-offset));
+DynamicBitset<Allocator>::reference::operator bool() const noexcept {
+    return std::to_integer<bool>(*byte & (std::byte(1) << 7 - offset));
 }
 
 template<typename Allocator>
 DynamicBitset<Allocator>::pointer::pointer(std::byte* ptr, uint8_t off) noexcept :
-byte{ptr}, offset{off}
-{}
+        byte{ptr}, offset{off} {}
 
 template<typename Allocator>
 typename DynamicBitset<Allocator>::pointer::internal_pointer& DynamicBitset<Allocator>::pointer::operator
