@@ -158,13 +158,12 @@ public:
     explicit DynamicBitset(size_type count, bool value, Allocator const& alloc = Allocator());
     template<size_t N>
     DynamicBitset(bool const (&bools)[N], Allocator const& alloc = Allocator());
-    DynamicBitset(const_iterator first, const_iterator last, Allocator const& alloc = Allocator());
     template<typename Iter>
     DynamicBitset(Iter first, Iter last, Allocator const& alloc = Allocator());
     DynamicBitset(DynamicBitset const& other);
     DynamicBitset(DynamicBitset const& other, Allocator const& alloc);
     DynamicBitset(DynamicBitset&& other) noexcept;
-    DynamicBitset(DynamicBitset&& other, Allocator const& alloc);
+    DynamicBitset(DynamicBitset&& other, Allocator const& alloc) noexcept(std::is_nothrow_copy_constructible_v<Allocator>);
     DynamicBitset(std::initializer_list<bool> ilist, Allocator const& alloc = Allocator());
     
     ~DynamicBitset();
@@ -406,6 +405,90 @@ template<typename Allocator>
 typename DynamicBitset<Allocator>::const_iterator DynamicBitset<Allocator>::begin() const noexcept
 {
     return cbegin();
+}
+
+template<typename Allocator>
+DynamicBitset<Allocator>::DynamicBitset(DynamicBitset::size_type count, bool value, const Allocator& alloc) :
+    Allocator(alloc)
+{
+    reserve(count);
+    d.size = count;
+    memset(d.start, value ? 0xFF : 0, ceil_div<8>(d.size));
+}
+
+template<typename Allocator>
+template<typename Iter>
+DynamicBitset<Allocator>::DynamicBitset(Iter first, Iter last, Allocator const& alloc) :
+    Allocator(alloc)
+{
+    auto size = std::distance(first, last);
+    reserve(size);
+    d.size = size;
+    std::copy(first, last, begin());
+}
+
+template<typename Allocator>
+DynamicBitset<Allocator>::DynamicBitset(DynamicBitset const& other) :
+    Allocator(other)
+{
+    reserve(other.d.size);
+    d.size = other.d.size;
+    memcpy(d.start, other.d.start, ceil_div<8>(d.size));
+}
+
+template<typename Allocator>
+DynamicBitset<Allocator>::DynamicBitset(DynamicBitset const& other, const Allocator& alloc):
+    Allocator(other)
+{
+    reserve(other.d.size);
+    d.size = other.d.size;
+    memcpy(d.start, other.d.start, ceil_div<8>(d.size));
+}
+
+template<typename Allocator>
+DynamicBitset<Allocator>::DynamicBitset(DynamicBitset&& other) noexcept :
+    Allocator(std::move(other))
+{
+    d = other.d;
+    other.d.start = other.d.capacity = nullptr;
+    other.d.size = 0;
+}
+
+template<typename Allocator>
+DynamicBitset<Allocator>::DynamicBitset(DynamicBitset&& other, const Allocator& alloc) noexcept(std::is_nothrow_copy_constructible_v<Allocator>) :
+    Allocator(std::move(other))
+{
+    d = other.d;
+    other.d.start = other.d.capacity = nullptr;
+    other.d.size = 0;
+}
+
+template<typename Allocator>
+DynamicBitset<Allocator>::DynamicBitset(std::initializer_list<bool> ilist, const Allocator& alloc) :
+    DynamicBitset(ilist.begin(), ilist.end(), alloc)
+{}
+
+template<typename Allocator>
+DynamicBitset<Allocator>::~DynamicBitset()
+{
+    destroy();
+}
+
+template<typename Allocator>
+DynamicBitset<Allocator>& DynamicBitset<Allocator>::operator=(DynamicBitset const& other)
+{
+    reserve(other.d.size);
+    d.size = other.d.size;
+    memcpy(d.start, other.d.start, ceil_div<8>(d.size));
+}
+
+template<typename Allocator>
+DynamicBitset<Allocator>& DynamicBitset<Allocator>::operator=(DynamicBitset&& other) noexcept
+{
+    *static_cast<Allocator*>(this) = std::move(static_cast<Allocator&>(other));
+    d = other.d;
+    other.d.start = other.d.capacity = nullptr;
+    other.d.size = 0;
 }
 
 
