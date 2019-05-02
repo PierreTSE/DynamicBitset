@@ -23,5 +23,5 @@
 
 void f()
 {
-  DynamicBitset vb(10, 1);
+  DynamicBitset vb(10, true);
 }

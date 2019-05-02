@@ -18,14 +18,29 @@
 #include <type_traits>
 
 
-template<typename T>
-using param = std::conditional_t<std::is_trivial_v<T> && sizeof(T) < 16, T, T const&>;
+
+namespace ok
+{
 
 template<size_t N>
 size_t ceil_div(size_t n)
 {
     return (n % N == 0 ? n/N : n/N + 1);
 }
+
+
+namespace detail
+{
+    template<typename Iter>
+    struct is_input_iterator 
+    {
+        static constexpr bool value = std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<Iter>::iterator_category>;
+    };
+    
+    template<typename Iter>
+    static constexpr bool is_input_iterator_v = is_input_iterator<Iter>::value;
+};
+
 
 template<typename Allocator = std::allocator<std::byte>>
 class DynamicBitset : private Allocator
@@ -143,6 +158,7 @@ private:
         std::byte* byte;
         uint8_t offset;
     };
+    
 public:
     using pointer = internal_pointer<false>;
     using const_pointer = internal_pointer<true>;
@@ -158,7 +174,7 @@ public:
     explicit DynamicBitset(size_type count, bool value, Allocator const& alloc = Allocator());
     template<size_t N>
     DynamicBitset(bool const (&bools)[N], Allocator const& alloc = Allocator());
-    template<typename Iter>
+    template<typename Iter, typename = std::enable_if_t<detail::is_input_iterator_v<Iter>>>
     DynamicBitset(Iter first, Iter last, Allocator const& alloc = Allocator());
     DynamicBitset(DynamicBitset const& other);
     DynamicBitset(DynamicBitset const& other, Allocator const& alloc);
@@ -173,7 +189,8 @@ public:
     DynamicBitset& operator=(DynamicBitset&& other) noexcept;
     DynamicBitset& operator=(std::initializer_list<bool> ilist);
 
-    void assign(const_iterator first, const_iterator last);
+    template<typename Iter>
+    void assign(Iter first, Iter last);
     void assign(std::initializer_list<bool> ilist);
 
     // Element access
@@ -274,6 +291,7 @@ public:
     
 private:
     void destroy() noexcept;
+    allocator_type* alloc() noexcept { return static_cast<allocator_type*>(this); }
 
 private:
     struct data
@@ -477,18 +495,62 @@ DynamicBitset<Allocator>::~DynamicBitset()
 template<typename Allocator>
 DynamicBitset<Allocator>& DynamicBitset<Allocator>::operator=(DynamicBitset const& other)
 {
-    reserve(other.d.size);
-    d.size = other.d.size;
-    memcpy(d.start, other.d.start, ceil_div<8>(d.size));
+    if(std::allocator_traits<Allocator>::propagate_on_container_copy_assignment::value)
+    {
+        if(get_allocator() != other.get_allocator())
+            destroy();
+        *alloc() = *other.alloc();
+        reserve(other.d.size);
+        d.size = other.d.size;
+        memcpy(d.start, other.d.start, ceil_div<8>(d.size));
+    }
+    else
+    {
+        reserve(other.d.size);
+        d.size = other.d.size;
+        memcpy(d.start, other.d.start, ceil_div<8>(d.size));
+    }
+    
+    return *this;
 }
 
 template<typename Allocator>
 DynamicBitset<Allocator>& DynamicBitset<Allocator>::operator=(DynamicBitset&& other) noexcept
 {
-    *static_cast<Allocator*>(this) = std::move(static_cast<Allocator&>(other));
-    d = other.d;
-    other.d.start = other.d.capacity = nullptr;
-    other.d.size = 0;
+    if(std::allocator_traits<Allocator>::propagate_on_container_move_assignment::value)
+    {
+        if(get_allocator() != other.get_allocator())
+            destroy();
+        *alloc() = *other.alloc();
+        reserve(other.d.size);
+        d.size = other.d.size;
+        memcpy(d.start, other.d.start, ceil_div<8>(d.size));
+    }
+    else
+    {
+        d = other.d;
+        other.d.start = other.d.capacity = nullptr;
+        other.d.size = 0;
+    }
+    
+    return *this;
+}
+
+template<typename Allocator>
+DynamicBitset<Allocator>& DynamicBitset<Allocator>::operator=(std::initializer_list<bool> ilist)
+{
+    reserve(ilist.size());
+    d.size = ilist.size();
+    std::copy(ilist.begin(), ilist.end(), begin());
+    
+    return *this;
+}
+
+template<typename Allocator>
+template<typename Iter>
+void DynamicBitset<Allocator>::assign(Iter first, Iter last)
+{
+    
 }
 
 
@@ -633,5 +695,5 @@ bool operator>=(DynamicBitset<Allocator> const& lhs, DynamicBitset<Allocator> co
 template<typename Allocator>
 void swap(DynamicBitset<Allocator>& lhs, DynamicBitset<Allocator>& rhs) noexcept;
 
-
+};
 #endif // DYNAMICBITSET_HPP
