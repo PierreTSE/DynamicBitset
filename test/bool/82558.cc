@@ -20,6 +20,7 @@
 #include <catch.hpp>
 #include "../../DynamicBitset.hpp"
 
+using namespace ok;
 // libstdc++/82558
 TEST_CASE("01")
 {

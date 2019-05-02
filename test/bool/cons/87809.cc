@@ -32,6 +32,7 @@ struct Alloc
   template<typename U>
     Alloc(const Alloc<U>&) { }
 };
+using namespace ok;
 
 template<typename T, typename U>
   bool operator==(Alloc<T>, Alloc<U>) { return true; }

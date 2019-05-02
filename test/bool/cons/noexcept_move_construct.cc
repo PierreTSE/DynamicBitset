@@ -21,6 +21,7 @@
 
 #include "../../../DynamicBitset.hpp"
 
+using namespace ok;
 typedef DynamicBitset<std::allocator<std::byte>> vbtype;
 
 static_assert(std::is_nothrow_move_constructible<vbtype>::value, "Error");

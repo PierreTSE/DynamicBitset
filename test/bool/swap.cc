@@ -42,6 +42,7 @@ template<class Cont>
       REQUIRE( c1[i] == c2[c1.size() - i - 1] );
   }
 
+using namespace ok;
 TEST_CASE("01")
 {
   const DynamicBitset vb_ref{0, 1, 1, 0, 1};

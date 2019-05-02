@@ -19,6 +19,7 @@
 
 // { dg-do compile }
 
+using namespace ok;
 class Foo
 {
 };

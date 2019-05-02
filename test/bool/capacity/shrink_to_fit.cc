@@ -20,9 +20,10 @@
 #include "../../../DynamicBitset.hpp"
 #include <catch.hpp>
 
+using namespace ok;
 TEST_CASE("01")
 {
-  DynamicBitset vb(__CHAR_BIT__ * sizeof(unsigned long) + 1);
+  DynamicBitset<> vb(__CHAR_BIT__ * sizeof(unsigned long) + 1);
   vb.pop_back();
 
   auto old_capacity = vb.capacity();

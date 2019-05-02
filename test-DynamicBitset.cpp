@@ -22,6 +22,8 @@ const bool A47[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                    0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
                    0, 0, 0, 1, 1};
 
+using namespace ok;
+
 TEST_CASE( "size and resize", "[DynamicBitset]" ) {
 
     DynamicBitset<> v( 5 );

@@ -21,6 +21,7 @@
 
 #include "../../../../DynamicBitset.hpp"
 
+using namespace ok;
 void f()
 {
   DynamicBitset vb(10, true);

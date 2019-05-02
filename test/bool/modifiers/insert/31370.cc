@@ -32,6 +32,7 @@
   using std::_S_word_bit;
 #endif
 
+using namespace ok;
 inline void
 check_cap_ge_size(const DynamicBitset<>& x)
 {

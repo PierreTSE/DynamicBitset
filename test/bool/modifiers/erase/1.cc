@@ -36,6 +36,7 @@ const unsigned N3 = sizeof(A3) / sizeof(bool);
 const unsigned N4 = sizeof(A4) / sizeof(bool);
 const unsigned N5 = sizeof(A5) / sizeof(bool);
 
+using namespace ok;
 TEST_CASE("01")
 {
   typedef DynamicBitset<std::allocator<std::byte>>  vec_type;
