@@ -75,7 +75,7 @@ TEST_CASE("01")
 
 TEST_CASE("02")
 {
-  typedef std::vector<DynamicBitset >  vec_type;
+  typedef std::vector<DynamicBitset<>>  vec_type;
   typedef vec_type::iterator          iterator_type;
 
   vec_type v, v1, v2, v3, v4, v5;

@@ -52,6 +52,12 @@ public:
         bool operator==(reference const& other) const { return bool(*this) == bool(other); }
 
         bool operator<(reference const& other) const { return !bool(*this) && bool(other); }
+        
+        friend void swap(reference a, reference b) {
+            bool temp = a;
+            a = b;
+            b = temp;
+        }
 
     private:
         std::byte* const byte;
@@ -146,16 +152,22 @@ public:
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
     // Constructors
-    DynamicBitset() noexcept(noexcept(Allocator()));
+    DynamicBitset() noexcept(std::is_nothrow_default_constructible_v<Allocator>);
     explicit DynamicBitset(Allocator const& alloc) noexcept(std::is_nothrow_copy_constructible_v<Allocator>);
     explicit DynamicBitset(size_type count, Allocator const& alloc = Allocator());
+    explicit DynamicBitset(size_type count, bool value, Allocator const& alloc = Allocator());
     template<size_t N>
     DynamicBitset(bool const (&bools)[N], Allocator const& alloc = Allocator());
-    DynamicBitset(DynamicBitset const& other, Allocator const& alloc);
     DynamicBitset(const_iterator first, const_iterator last, Allocator const& alloc = Allocator());
+    template<typename Iter>
+    DynamicBitset(Iter first, Iter last, Allocator const& alloc = Allocator());
+    DynamicBitset(DynamicBitset const& other);
+    DynamicBitset(DynamicBitset const& other, Allocator const& alloc);
     DynamicBitset(DynamicBitset&& other) noexcept;
     DynamicBitset(DynamicBitset&& other, Allocator const& alloc);
     DynamicBitset(std::initializer_list<bool> ilist, Allocator const& alloc = Allocator());
+    
+    ~DynamicBitset();
 
     // Copy and assignment
     DynamicBitset& operator=(DynamicBitset const& other);
@@ -200,14 +212,13 @@ public:
     size_type max_size() const noexcept;
 
     void reserve(size_type new_cap);
-
+    void shrink_to_fit() noexcept;
     size_type capacity() const noexcept;
 
     // Modifiers
     void clear() noexcept;
 
     iterator insert(const_iterator pos, bool value);
-    iterator insert(const_iterator pos, bool&& value);
     iterator insert(const_iterator pos, size_type count, bool value);
     iterator insert(const_iterator pos, const_iterator first, const_iterator last);
     iterator insert(const_iterator pos, std::initializer_list<bool> ilist);
@@ -323,7 +334,7 @@ typename DynamicBitset<Allocator>::size_type DynamicBitset<Allocator>::popcount(
 }
 
 template<typename Allocator>
-DynamicBitset<Allocator>::DynamicBitset() noexcept(noexcept(Allocator()))
+DynamicBitset<Allocator>::DynamicBitset() noexcept(std::is_nothrow_default_constructible_v<Allocator>)
 {}
 
 template<typename Allocator>

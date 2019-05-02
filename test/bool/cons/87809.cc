@@ -39,4 +39,4 @@ template<typename T, typename U>
   bool operator!=(Alloc<T>, Alloc<U>) { return false; }
 
 constexpr bool b
-  = std::is_default_constructible<std::vector<bool, Alloc<bool>>>::value;
+  = std::is_default_constructible<DynamicBitset<Alloc<bool>>>::value;

@@ -21,7 +21,7 @@
 
 #include "../../../../DynamicBitset.hpp"
 #include <catch.hpp>
-#include <testsuite_allocator.h>
+#include "../../allocator/testsuite_allocator.h"
 
 // uneq_allocator as a non-empty allocator.
 TEST_CASE("01")

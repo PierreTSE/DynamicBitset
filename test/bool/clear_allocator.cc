@@ -17,6 +17,7 @@
 
 #include "../../DynamicBitset.hpp"
 #include <ext/new_allocator.h>
+#include "catch.hpp"
 
 using namespace std;
 using __gnu_cxx::new_allocator;
@@ -82,6 +83,5 @@ template<typename Container>
 TEST_CASE("check container")
 {
   Check_Container<std::vector<bool, clear_alloc<bool> > >();
-  return 0;
 }
 

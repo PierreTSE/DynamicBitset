@@ -19,6 +19,8 @@
 
 #include "../../../DynamicBitset.hpp"
 #include "testsuite_allocator.h"
+#include <vector>
+#include <catch.hpp>
 
 using T = bool;
 

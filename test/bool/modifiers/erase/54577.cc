@@ -18,6 +18,7 @@
 // <http://www.gnu.org/licenses/>.
 
 #include "../../../../DynamicBitset.hpp"
+#include "catch.hpp"
 
 TEST_CASE("01")
 {

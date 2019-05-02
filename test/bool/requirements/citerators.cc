@@ -20,11 +20,11 @@
 // <http://www.gnu.org/licenses/>.
 
 #include "../../../DynamicBitset.hpp"
-#include <testsuite_containers.h>
-
-intmain()
-{
-  typedef DynamicBitset<std::allocator<std::byte>> test_type;
-  __gnu_test::citerator<test_type> test;
-  return 0;
-}
+//#include <testsuite_containers.h>
+//
+//intmain()
+//{
+//  typedef DynamicBitset<std::allocator<std::byte>> test_type;
+//  __gnu_test::citerator<test_type> test;
+//  return 0;
+//}

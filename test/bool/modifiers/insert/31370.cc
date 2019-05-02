@@ -33,14 +33,14 @@
 #endif
 
 inline void
-check_cap_ge_size(const DynamicBitset& x)
+check_cap_ge_size(const DynamicBitset<>& x)
 {
   if (x.capacity() < x.size())
     throw std::logic_error("");
 }
 
 inline void
-check_cap_eq_maxsize(const DynamicBitset& x)
+check_cap_eq_maxsize(const DynamicBitset<>& x)
 {
   if (x.capacity() != x.max_size())
     throw std::logic_error("");
@@ -53,7 +53,7 @@ TEST_CASE("01")
 
   try
     {
-      DynamicBitset x;
+      DynamicBitset<> x;
       x.reserve(x.max_size());
       check_cap_eq_maxsize(x);
     }
@@ -67,7 +67,7 @@ TEST_CASE("01")
   // other exceptions or crash.
   try
     {
-      DynamicBitset x;
+      DynamicBitset<> x;
       x.resize(x.max_size() / 2 + 1, false); 
       for(int i = 0; i < _S_word_bit; ++i)
 	x.push_back(false);
@@ -80,7 +80,7 @@ TEST_CASE("01")
   
   try
     {
-      DynamicBitset x;
+      DynamicBitset<> x;
       x.resize(x.max_size() / 2 + 1, false); 
       x.insert(x.end(), _S_word_bit, false);
       check_cap_ge_size(x);
@@ -92,9 +92,9 @@ TEST_CASE("01")
   
   try
     {
-      DynamicBitset x;
+      DynamicBitset<> x;
       x.resize(x.max_size() / 2 + 1, false); 
-      DynamicBitset y(_S_word_bit, false);
+      DynamicBitset<> y(_S_word_bit, false);
       x.insert(x.end(), y.begin(), y.end());
       check_cap_ge_size(x);
     }
@@ -107,7 +107,7 @@ TEST_CASE("01")
   // by the attempt to round up when near the max size.
   try
     {
-      DynamicBitset x;
+      DynamicBitset<> x;
       x.resize(x.max_size() - _S_word_bit, false); 
       for(int i = 0; i < _S_word_bit; ++i)
 	x.push_back(false);
@@ -120,7 +120,7 @@ TEST_CASE("01")
   
   try
     {
-      DynamicBitset x;
+      DynamicBitset<> x;
       x.resize(x.max_size() - _S_word_bit, false); 
       x.insert(x.end(), _S_word_bit, false);
       check_cap_ge_size(x);
@@ -132,9 +132,9 @@ TEST_CASE("01")
 
   try
     {
-      DynamicBitset x;
+      DynamicBitset<> x;
       x.resize(x.max_size() - _S_word_bit, false); 
-      DynamicBitset y(_S_word_bit, false);
+      DynamicBitset<> y(_S_word_bit, false);
       x.insert(x.end(), y.begin(), y.end());
       check_cap_ge_size(x);
     }
@@ -147,7 +147,7 @@ TEST_CASE("01")
   // length error.
   try
     {
-      DynamicBitset x;
+      DynamicBitset<> x;
       x.resize(x.max_size() - _S_word_bit, false); 
       for(int i = 0; i < _S_word_bit + 1; ++i)
 	x.push_back(false);
@@ -162,7 +162,7 @@ TEST_CASE("01")
   
   try
     {
-      DynamicBitset x;
+      DynamicBitset<> x;
       x.resize(x.max_size() - _S_word_bit, false); 
       x.insert(x.end(), _S_word_bit + 1, false);
       ++myexit;
@@ -176,9 +176,9 @@ TEST_CASE("01")
 
   try
     {
-      DynamicBitset x;
+      DynamicBitset<> x;
       x.resize(x.max_size() - _S_word_bit, false); 
-      DynamicBitset y(_S_word_bit + 1, false);
+      DynamicBitset<> y(_S_word_bit + 1, false);
       x.insert(x.end(), y.begin(), y.end());
       ++myexit;
     }

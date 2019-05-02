@@ -21,7 +21,7 @@
 #include "../../DynamicBitset.hpp"
 #include <catch.hpp>
 
-using test_type = DynamicBitset;
+using test_type = DynamicBitset<>;
 
 TEST_CASE("02")
 {

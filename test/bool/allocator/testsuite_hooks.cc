@@ -20,7 +20,7 @@
 // <http://www.gnu.org/licenses/>.
 //
 
-#include <testsuite_hooks.h>
+#include "testsuite_hooks.h"
 
 #ifdef _GLIBCXX_RES_LIMITS
 #include <unistd.h>
